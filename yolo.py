@@ -18,16 +18,17 @@ class Yolo():
 		##### Socket server #####
 		self.ip = ip
 		self.port = port
-		
-		
 
 	def socket_server(self):
-		imgFile = open("socketImage.jpg", 'wb')
+		##### Start socket server ######
 		server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		server.bind((self.ip, self.port))
-		server.listen(5)
+		server.listen(1)
 		client, addr = server.accept()
 		print("Connected by", addr)
+
+		##### Write image #####
+		imgFile = open("socketImage.jpg", 'wb')
 		while True:
 			#print("enter while")
 			imgData = client.recv(1024)
@@ -37,13 +38,32 @@ class Yolo():
 			imgFile.write(imgData)
 		imgFile.close()
 		print("image save")
+
 		client.close()
+
+	def yolo_detect(self):
+		img = cv2.imread("socketImage.jpg")
+	
+		self.yolo.getObject(img, labelWant="", drawBox=True, bold=1, textsize=0.6, bcolor=(0,0,255), tcolor=(255,255,255))
+		print("Object counts:", self.yolo.objCounts)
+		cv2.imwrite("results.jpg", img)
+
+	def send_results(self):
+		HOST = "192.168.0.145"
+		PORT = 5050
+		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		s.connect((HOST, PORT))
+		s.send(bytes("hello", encoding="utf8"))
+		s.close()
 
 if __name__ == "__main__":
 	exe = Yolo(ip="192.168.0.177", port=8080)
 	while True:
 		print("socket_server")
 		exe.socket_server()
-		time.sleep(2)
+		exe.yolo_detect()
+		time.sleep(1)
+		exe.send_results()
+		time.sleep(1)
 	#exe.socket_server()
 	exe.server.close()
