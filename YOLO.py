@@ -2,10 +2,8 @@ from yoloPydarknet import pydarknetYOLO
 import cv2
 import imutils
 import time
-from socket_server import Socket_server
 
 yolo = pydarknetYOLO(obdata="/home/titi/darknet/cfg/coco.data", weights="/home/titi/darknet/yolov3-tiny.weights", cfg="/home/titi/darknet/cfg/yolov3-tiny.cfg")
-socket = Socket_server(ip="192.168.0.177", port=8080)
 
 start_time = time.time()
 
@@ -17,7 +15,6 @@ if __name__ == "__main__":
 		'middleX': [],
 		'middleY': []
 	}
-	socket.getImage()
 
 	img = cv2.imread("socketImage.jpg")
 	
