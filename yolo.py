@@ -29,14 +29,23 @@ class Yolo():
 		print("Connected by", addr)
 
 		##### Write image #####
-		imgFile = open("socketImage.jpg", 'wb')
 		while True:
-			imgData = client.recv(1024)
-			if not imgData:
-				break
-			imgFile.write(imgData)
-		imgFile.close()
-		print("image save")
+			imgFile = open("socketImage.jpg", 'wb')
+			while True:
+				#print("waiting for incoming image...")
+				imgData = client.recv(1024)
+				imgFile.write(imgData)
+				if imgData[-4:] == b'over':
+					break
+			imgFile.close()
+			print("image save")
+
+			self.yolo_detect()
+			time.sleep(0.5)
+			X, Y, A = self.target()
+			pkg = "{} {} {}".format(X, Y, A)
+			client.send(bytes(pkg, encoding="utf8"))
+			self.clean_results()
 
 		client.close()
 		server.close()
@@ -70,7 +79,7 @@ class Yolo():
 				personScore.append(self.results['scores'][index])
 		if not personScore == []:
 			maxIndex = personScore.index(max(personScore))
-			Index = personIndex[0]
+			Index = personIndex[maxIndex]
 			return (self.results['middleX'][Index], self.results['middleY'][Index], self.results['area'][Index])
 		else:
 			return (None, None, None)
@@ -99,9 +108,4 @@ if __name__ == "__main__":
 	while True:
 		print("socket_server")
 		exe.socket_server()
-		exe.yolo_detect()
-		time.sleep(1)
-		X, Y, A = exe.target()
-		time.sleep(1)
-		exe.send_results(X, Y, A)
 		time.sleep(1)
