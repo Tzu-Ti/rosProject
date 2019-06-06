@@ -5,7 +5,7 @@ import imutils
 import time
 
 class Yolo():
-	def __init__(self, ip="192.168.0.177", port=8080):
+	def __init__(self, ip="192.168.0.177", port=5050):
 		##### YOLO #####
 		self.yolo = pydarknetYOLO(obdata="/home/titi/darknet/cfg/coco.data", weights="/home/titi/darknet/yolov3.weights", cfg="/home/titi/darknet/cfg/yolov3.cfg")
 		self.results = {
@@ -22,6 +22,7 @@ class Yolo():
 
 	def socket_server(self):
 		##### Start socket server ######
+		print("Start socket server %s, %s" %(self.ip, self.port))
 		server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		server.bind((self.ip, self.port))
 		server.listen(1)
@@ -30,6 +31,7 @@ class Yolo():
 
 		##### Write image #####
 		while True:
+			Break = False
 			imgFile = open("socketImage.jpg", 'wb')
 			while True:
 				#print("waiting for incoming image...")
@@ -37,8 +39,15 @@ class Yolo():
 				imgFile.write(imgData)
 				if imgData[-4:] == b'over':
 					break
+				elif not imgData:
+					Break = True
+					break
+
 			imgFile.close()
 			print("image save")
+
+			if Break:
+				break
 
 			self.yolo_detect()
 			time.sleep(0.5)
@@ -46,6 +55,8 @@ class Yolo():
 			pkg = "{} {} {}".format(X, Y, A)
 			client.send(bytes(pkg, encoding="utf8"))
 			self.clean_results()
+
+			
 
 		client.close()
 		server.close()
@@ -104,7 +115,7 @@ class Yolo():
 		} 
 
 if __name__ == "__main__":
-	exe = Yolo(ip="192.168.0.177", port=8080)
+	exe = Yolo(ip="192.168.0.177", port=5050)
 	while True:
 		print("socket_server")
 		exe.socket_server()
